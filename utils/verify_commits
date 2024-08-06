@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Configure repo with allowed_signers
+git config --local gpg.ssh.allowedSignersFile allowed_signers
+
+# Iterate each commit sha in this repo
+# Verify it using git verify-commit
+# Stop on the first signature verification failure
+
+commit_shas=$(git log --format=format:%H)
+for sha in $commit_shas; do
+  git verify-commit --raw $sha
+  if [ $? -ne 0 ]; then
+    echo "Verification failure: $sha signature does not have a valid signature";
+    echo "This repo should not be trusted";
+    exit 1;
+  fi
+done
+echo "All signature verify, this repo can be trusted"
+exit 0
